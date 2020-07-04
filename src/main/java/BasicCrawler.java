@@ -17,14 +17,17 @@ public class BasicCrawler extends WebCrawler {
                     "|rm|smil|wmv|swf|wma|zip|rar|gz))$");
     private static final String HEADER = "URL, ";
 
-    private final Map<String, List<Long>> linkHits = new HashMap<>();
-    private final Map<String, Long> hintsAmount = new HashMap<>();
-    private final List<String> urls = new ArrayList<>();
+    private final Map<String, List<Long>> linkHits;
+    private final Map<String, Long> hintsAmount;
+    private final List<String> urls;
 
     private final CrawlerStatistics stats;
 
     public BasicCrawler(CrawlerStatistics stats) {
         this.stats = stats;
+        this.urls = new ArrayList<>();
+        this.hintsAmount = new HashMap<>();
+        this.linkHits = new HashMap<>();
     }
 
     @Override
@@ -42,13 +45,14 @@ public class BasicCrawler extends WebCrawler {
 
             List<String> text = Arrays.asList(parseData.getText().toLowerCase().trim().split("[^a-z-A-Z0-9]+"));
             Map<String, Long> frequencyOfWords = getHints(stats.getSearchWords(), text);
-            List<Long> amountOfHints = new ArrayList<>(frequencyOfWords.values());
-
+            List<Long> totalAmountOfHints = new ArrayList<>(frequencyOfWords.values());
+            List<String> searchWord = getHints(stats.getSearchWords(), text).keySet().stream().collect(Collectors.toList());
             System.out.printf("Count hits for words : %s %n", getHints(stats.getSearchWords(), text));
             System.out.printf("Sum of hints %d %n", getMaxHint(frequencyOfWords));
 
             hintsAmount.put(url, getMaxHint(frequencyOfWords));
-            linkHits.put(url, amountOfHints);
+            linkHits.put(url, totalAmountOfHints);
+            stats.setSearchWords(searchWord);
         }
     }
 
